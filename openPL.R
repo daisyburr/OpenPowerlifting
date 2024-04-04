@@ -415,3 +415,51 @@ ggsave('nFail_WC.png')
 effect_plot(m5, pred = AgeClass) + ggtitle("nFailTotal ~ Age Class") +
   theme(plot.title = element_text(face = "plain", hjust = 0.5))
 ggsave('nFail_Age.png')
+
+
+
+
+m6 <- lm(nFailedS ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
+summ(m6, scale = T)
+Anova(m6)
+
+cat_plot(m6, pred = Federation, modx = Tested) + ggtitle("nFailSquat ~ Federation:Tested") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailS_fed.png')
+
+cat_plot(m6, pred = Federation, modx = Sex) + ggtitle("nFailSquat ~ Federation:Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailS_fed_sex.png')
+
+
+
+
+
+m7 <- lm(nFailedB ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
+summ(m7, scale = T)
+Anova(m7)
+
+cat_plot(m7, pred = Federation, modx = Tested) + ggtitle("nFailBench ~ Federation:Tested") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailB_fed.png')
+
+cat_plot(m7, pred = Federation, modx = Sex) + ggtitle("nFailBench ~ Federation:Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailB_fed_sex.png')
+
+
+
+m8 <- lm(nFailedDl ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
+summ(m8, scale = T)
+Anova(m8)
+
+cat_plot(m8, pred = Federation, modx = Tested) + ggtitle("nFailDeadlift ~ Federation:Tested") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailDl_fed.png')
+
+cat_plot(m8, pred = Federation, modx = Sex) + ggtitle("nFailDeadlift ~ Federation:Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailDl_fed_sex.png')
+
+
+
