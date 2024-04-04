@@ -6,6 +6,8 @@ library(jtools)
 library(ggpubr)
 library(lme4)
 library(lmerTest)
+library(car)
+library(interactions)
 
 
 setwd("~/Dropbox/openpowerlifting-2024-03-30")
@@ -141,8 +143,7 @@ ggsave('sex_b_age_tested.png')
 ggplot(d9, aes(x=Sex, y = Best3DeadliftKg, fill = Tested)) +
   geom_boxplot() + facet_grid(.~AgeClass) + theme_classic() +
   theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
-  ggtitle("Best Lift by Sex and Age") + theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Best Deadlift by Sex and Age") + theme(plot.title = element_text(hjust = 0.5))
+  ggtitle("Best Deadlift by Sex and Age") + theme(plot.title = element_text(hjust = 0.5)) 
 ggsave('sex_dl_age_tested.png')
 
 
@@ -169,7 +170,7 @@ ggsave('sex_b_WeightC_tested.png')
 ggplot(d9, aes(x=Sex, y = Best3DeadliftKg, fill = Tested)) +
   geom_boxplot() + facet_grid(.~WeightClassKg_new) + theme_classic() +
   theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
-  ggtitle("Best Lift by Sex and Weight Class") + theme(plot.title = element_text(hjust = 0.5)) 
+  ggtitle("Best Deadlift by Sex and Weight Class") + theme(plot.title = element_text(hjust = 0.5)) 
 ggsave('sex_dl_WeightC_tested.png')
 
 
@@ -327,17 +328,18 @@ ggsave('Sex_Fed_failedDl_weight.png')
 
 #dots total
 ggplot(d9, aes(x=Dots, y = TotalKg, group = Sex, colour = Sex)) +
-  geom_point() + theme_classic() +
-  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
-  ggtitle("Dots x Total") + theme(plot.title = element_text(hjust = 0.5)) 
-ggsave('dotsTotalSex.png')
-
-ggplot(d9, aes(x=Dots, y = TotalKg, group = Sex, colour = Sex)) +
   geom_point() + theme_classic() + facet_grid(.~WeightClassKg_new) +
   theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
   ggtitle("Dots x Total") + theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0))
 ggsave('dotsTotalSex_WC.png', width = 8)
+
+ggplot(d9, aes(x=Dots, y = TotalKg, group = Sex, colour = Sex)) +
+  geom_point() + theme_classic() + facet_grid(.~AgeClass) +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
+  ggtitle("Dots x Total") + theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0))
+ggsave('dotsTotalSex_AC.png', width = 8)
 
 
 #weight classes by weight
@@ -359,8 +361,30 @@ ggplot(d9, aes(BodyweightKg, fill = Sex)) +
   scale_x_continuous(breaks = seq(0, 225, 10))
 ggsave('weightVweightC.png')
 
+#weight classes by weight
+ggplot(d9, aes(Age, fill = Sex)) +
+  geom_histogram()  +
+  geom_vline(aes(xintercept=18)) + 
+  geom_vline(aes(xintercept=23)) +
+  geom_vline(aes(xintercept=34)) +
+  geom_vline(aes(xintercept=40)) +
+  geom_vline(aes(xintercept=45)) +
+  geom_vline(aes(xintercept=50)) +
+  geom_vline(aes(xintercept=55)) +
+  geom_vline(aes(xintercept=60)) +
+  geom_vline(aes(xintercept=65)) +
+  geom_vline(aes(xintercept=70)) +
+  geom_vline(aes(xintercept=75)) +
+  theme_classic() +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom") +
+  ggtitle("Age Distribution versus Age Classes") + theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0, hjust=0)) +
+  scale_x_continuous(breaks = seq(0, 80, 5))
+ggsave('AgeVAgeC.png')
+
+
 #total
-m1 <- lmer(TotalKg ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + (1 |MeetName), data = d9)
+m1 <- lm(TotalKg ~ Federation + Tested + Sex + Age + BodyweightKg, data = d9)
 #props
 m2 <- lmer(propS ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + (1 |MeetName), data = d9)
 
@@ -369,4 +393,25 @@ m3 <- lmer(propB ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + 
 m4 <- lmer(propDL ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + (1 |MeetName), data = d9)
 
 #failed
-m1 <- lmer(nFailTotal ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + (1 |MeetName), data = d9)
+d9_fed <- d9[d9$Federation=="USPA" | d9$Federation=="USAPL" | d9$Federation=="WRPF",]
+d9_fed$Federation <- fct_drop(d9_fed$Federation)
+
+m5 <- lm(nFailTotal ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
+summ(m5, scale = T)
+Anova(m5)
+
+cat_plot(m5, pred = Federation, modx = Tested) + ggtitle("nFailTotal ~ Federation:Tested") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFail_fed.png')
+
+cat_plot(m5, pred = Federation, modx = Sex) + ggtitle("nFailTotal ~ Federation:Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFail_fed_sex.png')
+
+effect_plot(m5, pred = WeightClassKg_new) + ggtitle("nFailTotal ~ Weight Class") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFail_WC.png')
+
+effect_plot(m5, pred = AgeClass) + ggtitle("nFailTotal ~ Age Class") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFail_Age.png')
