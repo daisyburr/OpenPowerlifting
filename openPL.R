@@ -443,8 +443,22 @@ effect_plot(m5, pred = AgeClass) + ggtitle("nFailTotal ~ Age Class") +
 ggsave('nFail_Age.png')
 
 
+#barplot of average failed lifts
+df_long <- pivot_longer(d9, c('nFailedS', 'nFailedB', 'nFailedDl'), names_to = "Lift", values_to = "Num_failures") 
+
+se <- Rmisc::summarySE(df_long, measurevar="Num_failures", groupvars=c("Lift","Sex"))
+
+ggplot(se, aes(x=Lift, y=Num_failures, fill=Sex)) + 
+  geom_bar(stat="identity", color="black", 
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=Num_failures-ci, ymax=Num_failures+ci), width=.2,
+                position=position_dodge(.9)) +
+  theme_bw() + ggtitle("Average Failed Attempts per Lift by Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('liftF_sex.png')
 
 
+#models
 m6 <- lm(nFailedS ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
 summ(m6, scale = T)
 Anova(m6)
@@ -488,4 +502,19 @@ cat_plot(m8, pred = Federation, modx = Sex) + ggtitle("nFailDeadlift ~ Federatio
 ggsave('nFailDl_fed_sex.png')
 
 
+
+df_long_fed <- df_long[df_long$Federation=="USPA" | df_long$Federation=="USAPL" | df_long$Federation=="WRPF" | df_long$Federation=="RPS",]
+df_long_fed$Federation <- fct_drop(df_long_fed$Federation)
+
+m9 <- lm(Num_failures ~ Lift:Sex + Lift:Federation + Lift:Tested + Age + BodyweightKg, data = df_long_fed)
+summ(m9, scale = T)
+Anova(m9)
+
+cat_plot(m9, pred = Lift, modx = Sex) + ggtitle("Number failures per Lift by Sex") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailT_fed_sex.png')
+
+cat_plot(m9, pred = Lift, modx = Federation) + ggtitle("Number failures per Lift by Federation") +
+  theme(plot.title = element_text(face = "plain", hjust = 0.5))
+ggsave('nFailT_fed.png')
 
