@@ -96,6 +96,10 @@ d8$propS <- d8$Best3SquatKg/d8$TotalKg
 d8$propB <- d8$Best3BenchKg/d8$TotalKg
 d8$propDl <- d8$Best3DeadliftKg/d8$TotalKg
 
+d8$s_bw <- d8$Best3SquatKg/d8$BodyweightKg
+d8$b_bw <- d8$Best3BenchKg/d8$BodyweightKg
+d8$dl_bw <- d8$Best3DeadliftKg/d8$BodyweightKg
+
 #failed lifts
 #number of failed lifts per lifter within meet 
 #Recode negatives as NA
@@ -217,9 +221,31 @@ ggsave('PropB.png')
 
 ggplot(d9, aes(x=Sex, y = propDl, fill = Tested)) +
   geom_boxplot() + theme_classic() +
-  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "none")  +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom")  +
   ggtitle("Proportion of total accounted for by deadlift") + theme(plot.title = element_text(hjust = 0.5))
 ggsave('propDL.png')
+
+ggplot(d9, aes(x=Sex, y = s_bw, fill = Tested)) +
+  geom_boxplot() + theme_classic() +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom")  +
+  ggtitle("Squat to body weight ratio") + theme(plot.title = element_text(hjust = 0.5)) + ylab("Squat to body weight ratio")
+ggsave('sbw.png')
+
+ggplot(d9, aes(x=Sex, y = b_bw, fill = Tested)) +
+  geom_boxplot() + theme_classic() +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "bottom")  +
+  ggtitle("Bench to body weight ratio") + theme(plot.title = element_text(hjust = 0.5)) + ylab("Bench to body weight ratio")
+ggsave('bbw.png')
+
+ggplot(d9, aes(x=Sex, y = dl_bw, fill = Tested)) +
+  geom_boxplot() + theme_classic() +
+  theme(strip.text.x = element_text(size = 8, angle = 45), legend.position = "none")  +
+  ggtitle("Deadlift to body weight ratio") + theme(plot.title = element_text(hjust = 0.5)) + ylab("Deadlift to body weight ratio")
+ggsave('dlbw.png')
+
+summary(d9$b_bw)
+
+
 
 
 #Fed
@@ -393,7 +419,7 @@ m3 <- lmer(propB ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + 
 m4 <- lmer(propDL ~ Federation + Tested + Sex + Age + BodyweightKg + (1| Name) + (1 |MeetName), data = d9)
 
 #failed
-d9_fed <- d9[d9$Federation=="USPA" | d9$Federation=="USAPL" | d9$Federation=="WRPF",]
+d9_fed <- d9[d9$Federation=="USPA" | d9$Federation=="USAPL" | d9$Federation=="WRPF" | d9$Federation=="RPS",]
 d9_fed$Federation <- fct_drop(d9_fed$Federation)
 
 m5 <- lm(nFailTotal ~ Federation:Tested + Federation:Sex + WeightClassKg_new + AgeClass, data = d9_fed)
